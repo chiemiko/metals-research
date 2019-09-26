@@ -1,0 +1,63 @@
+Date,MeshSize,Mineral,PriceHigh,PriceLow,PriceMid,Purity,ShippingRegion,Type
+Aug/2017,,Lithium,22000,18000,20000,Min 99.0%,CIF Asia,Lithium Carbonate
+Sep/2017,,Lithium,22500,18000,20250,Min 99.0%,CIF Asia,Lithium Carbonate
+Oct/2017,,Lithium,25000,18000,21500,Min 99.0%,CIF Asia,Lithium Carbonate
+Nov/2017,,Lithium,24000,18000,21000,Min 99.0%,CIF Asia,Lithium Carbonate
+Dec/2017,,Lithium,23500,18000,20750,Min 99.0%,CIF Asia,Lithium Carbonate
+Jan/2018,,Lithium,23000,18500,20750,Min 99.0%,CIF Asia,Lithium Carbonate
+Feb/2018,,Lithium,22000,18500,20250,Min 99.0%,CIF Asia,Lithium Carbonate
+Mar/2018,,Lithium,22000,18500,20250,Min 99.0%,CIF Asia,Lithium Carbonate
+Apr/2018,,Lithium,21000,17000,19000,Min 99.0%,CIF Asia,Lithium Carbonate
+May/2018,,Lithium,20000,17000,18500,Min 99.0%,CIF Asia,Lithium Carbonate
+Jun/2018,,Lithium,19000,16500,17750,Min 99.0%,CIF Asia,Lithium Carbonate
+Jul/2018,,Lithium,18000,16500,17250,Min 99.0%,CIF Asia,Lithium Carbonate
+Jan/2018,Battery,Lithium,25500,23500,24500,Min 99.0%,EXW China,Lithium Carbonate
+Feb/2018,Battery,Lithium,25500,23500,24500,Min 99.0%,EXW China,Lithium Carbonate
+Mar/2018,Battery,Lithium,25500,24000,24750,Min 99.0%,EXW China,Lithium Carbonate
+Apr/2018,Battery,Lithium,24000,22000,23000,Min 99.0%,EXW China,Lithium Carbonate
+May/2018,Battery,Lithium,22000,20000,21000,Min 99.0%,EXW China,Lithium Carbonate
+Jun/2018,Battery,Lithium,19000,17500,18250,Min 99.0%,EXW China,Lithium Carbonate
+Jul/2018,Battery,Lithium,17000,16000,16500,Min 99.0%,EXW China,Lithium Carbonate
+Jan/2018,Technical,Lithium,22000,21500,21750,Min 99.0%,EXW China,Lithium Carbonate
+Feb/2018,Technical,Lithium,22000,21500,21750,Min 99.0%,EXW China,Lithium Carbonate
+Mar/2018,Technical,Lithium,23000,22000,22500,Min 99.0%,EXW China,Lithium Carbonate
+Apr/2018,Technical,Lithium,21500,20000,20750,Min 99.0%,EXW China,Lithium Carbonate
+May/2018,Technical,Lithium,19500,18000,18750,Min 99.0%,EXW China,Lithium Carbonate
+Jun/2018,Technical,Lithium,17000,15000,16000,Min 99.0%,EXW China,Lithium Carbonate
+Jul/2018,Technical,Lithium,15500,13500,14500,Min 99.0%,EXW China,Lithium Carbonate
+Aug/2017,,Lithium,15000,12500,13750,Min 99.0%,FOB S America,Lithium Carbonate
+Sep/2017,,Lithium,15000,12500,13750,Min 99.0%,FOB S America,Lithium Carbonate
+Oct/2017,,Lithium,15000,12750,13875,Min 99.0%,FOB S America,Lithium Carbonate
+Nov/2017,,Lithium,15000,13000,14000,Min 99.0%,FOB S America,Lithium Carbonate
+Dec/2017,,Lithium,15000,13000,14000,Min 99.0%,FOB S America,Lithium Carbonate
+Jan/2018,,Lithium,15500,13500,14500,Min 99.0%,FOB S America,Lithium Carbonate
+Feb/2018,,Lithium,15000,14000,14500,Min 99.0%,FOB S America,Lithium Carbonate
+Mar/2018,,Lithium,15500,14000,14750,Min 99.0%,FOB S America,Lithium Carbonate
+Apr/2018,,Lithium,15500,14000,14750,Min 99.0%,FOB S America,Lithium Carbonate
+May/2018,,Lithium,17000,14500,15750,Min 99.0%,FOB S America,Lithium Carbonate
+Jun/2018,,Lithium,16750,14750,15750,Min 99.0%,FOB S America,Lithium Carbonate
+Jul/2018,,Lithium,16000,14000,15000,Min 99.0%,FOB S America,Lithium Carbonate
+Aug/2017,,Lithium,23000,18000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+Sep/2017,,Lithium,23000,18500,20750,Min 55.0%,CIF Asia,Lithium Hydroxide
+Oct/2017,,Lithium,21000,19000,20000,Min 55.0%,CIF Asia,Lithium Hydroxide
+Nov/2017,,Lithium,21500,19000,20250,Min 55.0%,CIF Asia,Lithium Hydroxide
+Dec/2017,,Lithium,22000,19000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+Jan/2018,,Lithium,22000,19000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+Feb/2018,,Lithium,22000,19000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+Mar/2018,,Lithium,22500,19000,20750,Min 55.0%,CIF Asia,Lithium Hydroxide
+Apr/2018,,Lithium,22000,19000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+May/2018,,Lithium,22000,19000,20500,Min 55.0%,CIF Asia,Lithium Hydroxide
+Jun/2018,,Lithium,21500,19000,20250,Min 55.0%,CIF Asia,Lithium Hydroxide
+Jul/2018,,Lithium,21500,19000,20250,Min 55.0%,CIF Asia,Lithium Hydroxide
+Aug/2017,,Lithium,24000,19000,21500,Min 55.0%,EXW China,Lithium Hydroxide
+Sep/2017,,Lithium,24500,19500,22000,Min 55.0%,EXW China,Lithium Hydroxide
+Oct/2017,,Lithium,23000,19000,21000,Min 55.0%,EXW China,Lithium Hydroxide
+Nov/2017,,Lithium,24000,19000,21500,Min 55.0%,EXW China,Lithium Hydroxide
+Dec/2017,,Lithium,24000,20000,22000,Min 55.0%,EXW China,Lithium Hydroxide
+Jan/2018,,Lithium,24500,19000,21750,Min 55.0%,EXW China,Lithium Hydroxide
+Feb/2018,,Lithium,25000,19500,22250,Min 55.0%,EXW China,Lithium Hydroxide
+Mar/2018,,Lithium,25000,19000,22000,Min 55.0%,EXW China,Lithium Hydroxide
+Apr/2018,,Lithium,25000,20000,22500,Min 55.0%,EXW China,Lithium Hydroxide
+May/2018,,Lithium,25000,21000,23000,Min 55.0%,EXW China,Lithium Hydroxide
+Jun/2018,,Lithium,21000,20000,20500,Min 55.0%,EXW China,Lithium Hydroxide
+Jul/2018,,Lithium,20500,19500,20000,Min 55.0%,EXW China,Lithium Hydroxide
