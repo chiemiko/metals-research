@@ -212,7 +212,7 @@ def update_EVSales():
     EVSales['Company'] = EVSales.loc[:, '2019 U.S. EV SALES'].str.split(' ', n=1, expand=True)[0]
     for key, item in EVSales['Company'].items():
         if item == 'bmwx5':
-            EVSales['Company'].loc[:,key] = 'bmw'
+            EVSales['Company'][key] = 'bmw'
 
 
     EVSales = EVSales.groupby(EVSales['Company']).sum()
@@ -280,7 +280,6 @@ def update_baselines():
     for key, model in usage['Model'].items():
         #print(model.replace('-', ''))
         vars()[str(model)] = baselines[['LME Ni cash price', 'LME Co cash price', 'LME Cu cash price', 'LME Al cash price', 'Lithium']]
-
         #print(vars()[str(model)])
 
 
@@ -341,22 +340,79 @@ def update_baselines():
             col_name = 'Lithium' 
             new_col_name = 'Li Usage'
             vars()[str(model)].loc[:,new_col_name] = (vars()[str(model)].loc[:,col_name]*usage.loc[key,'LiOH'])/(1000*usage.loc[key, 'cell_energy'])
-            #print(vars()[str(model)])
-            #print(model)
-
-        
 
         model_df_name = str(model) + '_df'
         csv_filename = 'raw_data_finals/usage_per_model/' + str(model) + '.csv'
         vars()[str(model)].to_csv(csv_filename)
         vars()[model_df_name] = pd.read_csv(csv_filename)
-        vars()[model_df_name].loc[:,'Unnamed: 0'] = pd.to_datetime(vars()[model_df_name].loc[:,'Unnamed: 0'])
-        vars()[model_df_name].index = vars()[model_df_name].loc[:,'Unnamed: 0']
+        vars()[model_df_name]['Unnamed: 0'] = pd.to_datetime(vars()[model_df_name]['Unnamed: 0'])
+        vars()[model_df_name].index = vars()[model_df_name]['Unnamed: 0']
         vars()[model_df_name] = vars()[model_df_name].iloc[:, 1:len(vars()[model_df_name].columns)]
         vars()[model_df_name].to_sql(str(model), con=engine, if_exists='replace', index = True)
 
-        #print(str(model))
-        #vars()[str(model)].to_sql(str(model), con=engine, if_exists='replace', index = True)
+
+    baselines = baselines[['Lithium','LME Ni cash price', 'LME Co cash price', 'LME Cu cash price', 'LME Al cash price']]
+
+    baselines = baselines.dropna(subset=['Lithium'])
+
+
+    # #### !! Reset base if need be by changing date in base variable below
+
+    base = baselines.loc['2018-01-01', :]
+
+
+    for col in baselines.columns:
+        baselines.loc[:, col] = (baselines.loc[:, col]*100)/base[col]
+
+    baselines.to_csv('raw_data_finals/baselines.csv')
+    baselines = pd.read_csv('raw_data_finals/baselines.csv')
+    baselines.loc[:,'Unnamed: 0'] = pd.to_datetime(baselines.loc[:,'Unnamed: 0'])
+    baselines.index = baselines['Unnamed: 0']
+    baselines = baselines.iloc[:, 1:len(baselines.columns)]
+    baselines.to_sql("baselines", con=engine, if_exists='replace', index = True)
+
+
+def update_lithium():
+    baselines = pd.read_sql_query('SELECT * from baselines;', connection)
+
+    Li_Benchmarks = pd.read_excel("raw_data_finals/LiOH/201907 Benchmark Lithium Prices - Jul 19.xlsx", sheet_name="Hydroxide")
+    Li_Fastmarkets = pd.read_excel("raw_data_finals/LiOH/20190729 Lithium Spot Prices.xlsx", sheet_name="Data")
+    Li_Benchmarks.index = Li_Benchmarks.iloc[:,0]
+    Li_Benchmarks = Li_Benchmarks.iloc[:, 1:]
+    Li_Benchmarks_col = Li_Benchmarks.iloc[:, 1]
+    Li_Benchmarks_col.index = pd.to_datetime(Li_Benchmarks_col.index)
+
+    Li_Fastmarkets = Li_Fastmarkets.dropna(subset=[ 'Lithium hydroxide monohydrate min 56.5% LiOH2O battery grade, spot prices CIF China, Japan & Korea, $/kg\r\nHigh (USD)'])
+    Li_Fastmarkets.index = pd.to_datetime(Li_Fastmarkets['Unnamed: 0']).dt.to_period('M')
+    Li_Fastmarkets_col = Li_Fastmarkets.loc[:, 'Lithium hydroxide monohydrate min 56.5% LiOH2O battery grade, spot prices CIF China, Japan & Korea, $/kg\r\nHigh (USD)']
+    Li_Fastmarkets_col = Li_Fastmarkets_col.groupby(Li_Fastmarkets_col.index).mean()
+
+
+    datelist = []
+    for date in Li_Fastmarkets_col.index:
+        date_add =  datetime.datetime(date.year, date.month, 1)
+        datelist.append(date_add)
+
+
+    Li_Fastmarkets_col.index = datelist
+
+
+
+
+    Lithium = pd.concat([Li_Fastmarkets_col, Li_Benchmarks_col], axis=1, sort=False)
+
+    Lithium = Lithium.dropna(subset=[ 'Lithium hydroxide monohydrate min 56.5% LiOH2O battery grade, spot prices CIF China, Japan & Korea, $/kg\r\nHigh (USD)'])
+
+    Lithium.to_csv('raw_data_finals/LiOH/lithium_benchmark_fastmarkets.csv')
+
+    Lithium = pd.read_csv('raw_data_finals/LiOH/lithium_benchmark_fastmarkets.csv')
+    Lithium['Unnamed: 0'] = pd.to_datetime(Lithium['Unnamed: 0'])
+    Lithium.index = Lithium['Unnamed: 0']
+    Lithium = Lithium.iloc[:, 1:len(Lithium.columns)]
+
+    Lithium.to_sql("lithium_benchmark_fastmarkets", con=engine, if_exists='replace', index = True)
+
+
 
 
 
@@ -367,4 +423,12 @@ update_usage()
 update_EVSales()
 
 update_baselines()
-        
+
+update_lithium()
+
+print()
+print('Tables in the database are: ', engine.table_names())
+
+connection.close()
+
+
