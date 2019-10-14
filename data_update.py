@@ -1,25 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# ### Documentation: 
-# 
-# #### Overall
-# The main goal of this project is to convert multiple excel data files to appended rows in a SQL database. This will operate via the following procedure: 
-# 
-# 1. Python/SQLite connection to SQL database. 
-# 2. Clean each csv/excel file via python
-# 3. Upload and replace associated table in SQLfile 
-# 
-# #### GSM Member Instructions after download and save: 
-# 1. From August Dashboard xlsx file take out all spaces manually (rename)
-# 
-# 
-# #### Location path
-# C:\Users\ckato\Documents\GitHub\metals-research\data
-# 
-# #### To upload into Power BI, install driver first here: 
-# http://www.ch-werner.de/sqliteodbc/
-
 
 from sqlalchemy import create_engine
 from sqlalchemy import(Table, Column, String, Integer, Boolean)
@@ -249,7 +227,7 @@ def update_baselines():
     LiOH = LiOH.iloc[:, 1:]
     LiOH.columns = LiOH.iloc[2, :]
 
-    LiOH_col = LiOH.iloc[58, :]
+    LiOH_col = LiOH.loc['Weighted average per kg price - all sources', :]
     LiOH_col = LiOH_col[4:]
     LiOH_col = LiOH_col*1000
 
@@ -373,6 +351,7 @@ def update_baselines():
 
 
 def update_lithium():
+    '''Updates Lithium prices from two data files for Lithium line plot'''
     baselines = pd.read_sql_query('SELECT * from baselines;', connection)
 
     Li_Benchmarks = pd.read_excel("raw_data_finals/LiOH/201907 Benchmark Lithium Prices - Jul 19.xlsx", sheet_name="Hydroxide")
