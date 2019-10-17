@@ -380,7 +380,9 @@ def update_lithium():
 
     Lithium = pd.concat([Li_Fastmarkets_col, Li_Benchmarks_col], axis=1, sort=False)
 
-    Lithium = Lithium.dropna(subset=[ 'Lithium hydroxide monohydrate min 56.5% LiOH2O battery grade, spot prices CIF China, Japan & Korea, $/kg\r\nHigh (USD)'])
+    #Lithium = Lithium.dropna(subset=[ 'Lithium hydroxide monohydrate min 56.5% LiOH2O battery grade, spot prices CIF China, Japan & Korea, $/kg\r\nHigh (USD)'])
+    Lithium = Lithium.loc['2017-08-01':, :] 
+
 
     Lithium.to_csv('raw_data_finals/LiOH/lithium_benchmark_fastmarkets.csv')
 
@@ -388,6 +390,7 @@ def update_lithium():
     Lithium['Unnamed: 0'] = pd.to_datetime(Lithium['Unnamed: 0'])
     Lithium.index = Lithium['Unnamed: 0']
     Lithium = Lithium.iloc[:, 1:len(Lithium.columns)]
+    Lithium = Lithium.astype(float) 
 
     Lithium.to_sql("lithium_benchmark_fastmarkets", con=engine, if_exists='replace', index = True)
 
