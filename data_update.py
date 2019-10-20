@@ -87,9 +87,13 @@ def update_battery_cap():
     # #### Reading and Cleaning Battery Capacity Data
 
     # Battery Capacity table
-    filename2 = 'raw_data_finals/BatteryCapacity/201908 Benchmark Minerals Megafactory data - August 2019.xlsx'
+    #filename2 = 'raw_data_finals/BatteryCapacity/201908 Benchmark Minerals Megafactory data - August 2019.xlsx'
+    #battery_cap = pd.read_excel(filename2, sheet_name="Sheet1")
+    
+    filename4 = 'raw_data_finals\metals_data_main.xlsx'
+    battery_cap = pd.read_excel(filename4, sheet_name='battery_cap')
 
-    battery_cap = pd.read_excel(filename2, sheet_name="Sheet1")
+
     battery_cap = battery_cap.iloc[:, 1:len(battery_cap.columns)]
     battery_cap =  battery_cap.iloc[6: ,:]
     battery_cap.columns = battery_cap.iloc[0,:]
@@ -145,8 +149,9 @@ def update_EVSales():
     kwh_dictionary = dict(zip(model_lookup_data['Model'], model_lookup_data['kwh'])) 
 
 
-    filename4 = 'raw_data_finals\EVSales\EVSales.xlsx'
-    EVSales = pd.read_excel(filename4)
+    #filename4 = 'raw_data_finals\EVSales\EVSales.xlsx'
+    filename4 = 'raw_data_finals\metals_data_main.xlsx'
+    EVSales = pd.read_excel(filename4, sheet_name='EVSales')
 
 
     EVSales.columns = EVSales.iloc[0]
@@ -355,7 +360,10 @@ def update_lithium():
     baselines = pd.read_sql_query('SELECT * from baselines;', connection)
 
     Li_Benchmarks = pd.read_excel("raw_data_finals/LiOH/201907 Benchmark Lithium Prices - Jul 19.xlsx", sheet_name="Hydroxide")
-    Li_Fastmarkets = pd.read_excel("raw_data_finals/LiOH/20190729 Lithium Spot Prices.xlsx", sheet_name="Data")
+    #Li_Fastmarkets = pd.read_excel("raw_data_finals/LiOH/20190729 Lithium Spot Prices.xlsx", sheet_name="Data")
+    filename4 = 'raw_data_finals\metals_data_main.xlsx'
+    Li_Fastmarkets = pd.read_excel(filename4, sheet_name='LiOH_Fastmarkets')
+
     Li_Benchmarks.index = Li_Benchmarks.iloc[:,0]
     Li_Benchmarks = Li_Benchmarks.iloc[:, 1:]
     Li_Benchmarks_col = Li_Benchmarks.iloc[:, 1]
@@ -410,6 +418,7 @@ update_lithium()
 
 print()
 print('Tables in the database are: ', engine.table_names())
+print()
 
 connection.close()
 
