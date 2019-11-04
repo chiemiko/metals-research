@@ -4,11 +4,10 @@ from sqlalchemy import(Table, Column, String, Integer, Boolean)
 from sqlalchemy import MetaData, Table
 
 import numpy as np
-
 import datetime
-
+import glob
 import pandas as pd
-
+import PyPDF2
 
 # ## Step 1: SQL Connection to Database
 
@@ -403,6 +402,86 @@ def update_lithium():
     Lithium.to_sql("lithium_benchmark_fastmarkets", con=engine, if_exists='replace', index = True)
 
 
+
+    # To update Lithium platts data
+    files = glob.glob('raw_data_finals/LiOH/platts/*' + ".pdf")
+
+    hydroxide = []
+    date_index = []
+
+    for file in files:
+        pdfFileObj = open( file, 'rb') 
+        pdfReader = PyPDF2.PdfFileReader(pdfFileObj) 
+        #print(pdfReader.numPages) 
+        pageObj = pdfReader.getPage(0) 
+        string = pageObj.extractText()
+        #print(pageObj.extractText())
+        
+        textlines = string.splitlines()
+
+        str_subset = ''
+        for i, item in enumerate(textlines):
+            if item == "Weekly Prices":
+                str_subset = textlines[i:]
+
+            #print(item)
+        for i, item in enumerate(str_subset):
+            # NOTE: there is another CIF term in the last line but in ALL CAPS 
+            if 'CIF North Asia' in item:
+                if 'Hydroxide' in item:
+                    #print(item)
+                    #print(str_subset[i+1].split())
+                    #print(file)
+                    #print(str_subset[i+1].split()[0])
+                    hydroxide.append(float(str_subset[i+1].split()[0]))
+                     
+                    try:
+                        date_string = str_subset[i+1].split()[2]
+                        date = datetime.datetime.strptime(date_string, '%d-%b-%y')
+                    except IndexError as error:
+                        date_string = str_subset[i+2].split()[0]
+                        date = datetime.datetime.strptime(date_string, '%d-%b-%y')
+                    
+                                    
+                    except ValueError as error:
+                        date_string = str_subset[i+1].split()[3][:9]
+                        date = datetime.datetime.strptime(date_string, '%d-%b-%y')
+                    
+                    date_index.append(date)
+                    #if str_subset[i+1].split()[3] != None:
+                        #print(str_subset[i+1].split()[3])
+                    
+                    #date_index.append()
+                    
+            
+            
+        pdfFileObj.close() 
+    platts_hydr = pd.DataFrame({'date': date_index, 
+                            'platts_hydroxide_prices': hydroxide
+    })
+
+    platts_hydr.index = platts_hydr['date']
+    platts_hydr = platts_hydr.iloc[:, 1:]
+    #platts_hydr.to_sql("platts_hydroxide", con=engine, if_exists='replace', index = True)
+
+    platts_hydr = platts_hydr.loc[~platts_hydr.index.duplicated(keep='first')]
+    platts_hydr = platts_hydr.groupby(by=[platts_hydr.index.month, platts_hydr.index.year]).mean()
+
+    new_col = []
+    for item in platts_hydr.index:
+        new_index = datetime.datetime(item[1], item[0], 1)
+        new_col.append(new_index)
+    #ew_index = d
+    platts_hydr.index = new_col
+    
+
+    #platts_hydr.to_sql("platts_hydroxide_avg", con=engine, if_exists='replace', index = True)
+
+    df = pd.read_sql_query('SELECT * from lithium_benchmark_fastmarkets;', connection)
+    df =df.iloc[:, :3]
+    df = df.set_index('Unnamed: 0').join(platts_hydr)
+    df.to_sql("lithium_benchmark_fastmarkets", con=engine, if_exists='replace', index = True)
+    df.head()
 
 
 
