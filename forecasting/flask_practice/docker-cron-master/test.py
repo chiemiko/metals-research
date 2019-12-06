@@ -1,4 +1,5 @@
 import datetime
+import numpy
 import pandas as pd
 
 #print("Cron job has run at %s" %datetime.datetime.now())
