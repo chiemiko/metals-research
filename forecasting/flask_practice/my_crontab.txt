@@ -1,0 +1,1 @@
+0 0 * * * python test_cron.py >> test.out

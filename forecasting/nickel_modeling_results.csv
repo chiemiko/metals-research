@@ -1,0 +1,6 @@
+model_name,mae,parameters
+LinearRegression,2175.1055804799266,None
+Polynomial,1265.1136827027678,2
+Lasso,2175.1052472473866,{'alpha': 1}
+AdaBoostRegressor,1587.160060259901,"{'learning_rate': 0.001, 'n_estimators': 50}"
+KNeighborsRegressor,1188.3567353775425,16

@@ -1,0 +1,8 @@
+
+docker build --rm -t docker-cron .
+
+docker run -t -i -d docker-cron
+
+docker exec -i -t 3785c0f519dd /bin/bash
+
+docker stop 578024f7a8b7
