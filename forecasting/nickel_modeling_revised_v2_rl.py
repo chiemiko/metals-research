@@ -1,35 +1,18 @@
 """
 
-    Time Series Modeling/Assessment - Chiemi Kato
+    Time Series Modeling/Assessment
+
+        Transforms historical nickel price data and uses it to build various supervised learning regression
     
-
-        Transforms historic nickel price data (time format in business days, including holidays) and uses
-
-        it to build and compare various supervised learning regression models to make price forecasts for
-
-        one year ahead of time. Predictor variables are created by taking lagged copies of itself and a target
-
-        variable, y, which represents one year ahead of time, can be built by shifting all other X variables
-
-        back by one year (261 business days).
+        models to make price forecasts for one year ahead of time. Predictor variables are created by
+    
+        taking lagged copies of itself and a target variable, y, which represents one year ahead of time,
+    
+        can be built by shifting all other X variables back by one year (261 business days). 
 
 
         To compare with baseline models, models are also fit on data with one day ahead target variables.
 
-        Prediction results are outputted in image format and one year prediction MAE's are recorded in a CSV.
-
-
-
-    Instructions to Run (NOTE: Requires Python 3.5+):
-
-        Run Python script with specified input filepath like such:
-
-        python nickel_modeling.py -in "nickel_processed.csv"
-
-        or
-
-        python nickel_modeling.py -in '{your_directory_here}/nickel_processed.csv'
-        
 
 """
 
@@ -60,7 +43,7 @@ def stationarity_preprocess(series, window_setting):
     """Transforms series data by taking difference of rolling average method for a stationary time series."""
     
     moving_avg = series.rolling(window=window_setting).mean().shift()
-    moving_avg_diff = series-moving_avg # difference from moving average
+    moving_avg_diff = series-moving_avg # takes difference from moving average
 
     return moving_avg_diff
 
@@ -69,8 +52,6 @@ def reverse_stationarity(series, train_tail, window_setting):
     """
     Uses moving averages from the tail-end of training data 
     before using its own unscaled predictions to perform reverse differencing.
-    Builds/iterates one sample at a time to incorporate previous unscaled results
-    back in to moving average.
     """
     unscaled = []
     for key, item in series.items():
@@ -116,7 +97,7 @@ def time_series_train_test_split(df, offset=0):
 
 def minimum_mae(mae_results, model_name):
     """Takes in dictionary of mae_results and parameter settings outputted from grid search
-    and does the following:
+    and
     
     1) Calculates the optimal mae and associated parameter settings
     2) Prints all mae results
@@ -158,32 +139,24 @@ def fit_predict(model, X_train, X_test, y_train, y_test, train_tail, window_sett
     return y_pred_unscaled, y_unscaled
 
 
-def regression_plot(y_hat, y, model_name, offset):
+def regression_plot(y_hat, y, model_name):
     locator = mdates.MonthLocator()  # sets plot tick marks by month/year
     fmt = mdates.DateFormatter('%b-%y')
     
-    plt.plot(y_hat, linewidth=1.0)
-    plt.plot(y, linewidth=1.0)
+    plt.plot(y_hat)
+    plt.plot(y)
+    
     X = plt.gca().xaxis
     X.set_major_locator(locator)
-    X.set_major_formatter(fmt) # specify date format
+
+    # specify formatter
+    X.set_major_formatter(fmt)
     plt.xticks( rotation=45 )
 
-    plt.legend(['Predicted Price', 'Actual Price'])
+    plt.legend(['y_hat', 'y'])
     plt.grid(linestyle="dashed")
-    
-    mae = metrics.mean_absolute_error(y_hat, y)
-    mae_string =  "{:.{}f}".format( mae, 2 )
+    plt.title(model_name + ' Regression Prediction Results', fontsize=15)
 
-    # 0 years refers to predictions of 1 day !   
-    plt.title(model_name + ' Regression ' +  str(offset) + ' Year(s) Prediction Results \n' + 'MAE over period: $' + mae_string, fontsize=15)
-
-    
-    if offset != 0:
-        plt.savefig(str(model_name) + '_' + str(offset) + 'yr_preds.png', bbox_inches = 'tight')
-    else:
-        plt.savefig(str(model_name) + '_' + '1day_preds.png', bbox_inches = 'tight')
-        
     plt.show()
 
 
@@ -191,7 +164,7 @@ def preprocess_time_series(filepath, window_setting, lag_length, offset):
     """Calls all necessary preprocessing functions -  Prepares time series data for supervised learning experiments by creating additional lagged columns of the original
     column and assigning a target y variable by pushing all predictor X variables back by one year"""
 
-    read_LME = pd.read_csv(filepath)
+    read_LME = pd.read_csv('nickel_processed.csv')
     LME = pd.Series(read_LME.iloc[:, 1])
     LME.index = pd.to_datetime(read_LME.iloc[:,0])
     LME_shifted = LME.shift(-261*offset).dropna()
@@ -234,7 +207,7 @@ def run_linear_reg(X_train, X_test, y_train, y_test, train_tail, window_setting,
     model_name = str(regressor).split('(')[0]
     print('Test Linear Regression MAE: ', mae)
 
-    regression_plot(y_pred_unscaled, y_unscaled, model_name, offset)
+    regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
     min_test_mae = mae
     min_parameters = 'None'
@@ -291,7 +264,7 @@ def run_polynomial(X_train, X_test, y_train, y_test, train_tail, window_setting,
     y_pred_unscaled.index = y_pred_unscaled.index + pd.DateOffset(years=1)
     y_unscaled.index = y_unscaled.index + pd.DateOffset(years=1)
     
-    regression_plot(y_pred_unscaled, y_unscaled, model_name, offset)
+    regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
     return min_test_mae, min_parameters, model_name
 
@@ -315,7 +288,7 @@ def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail, window_setting,
 
     y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, window_setting, offset)
         
-    regression_plot(y_pred_unscaled, y_unscaled, model_name, offset)
+    regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
     return min_test_mae, min_parameters, model_name
 
@@ -341,7 +314,7 @@ def run_adaboost_grid(X_train, X_test, y_train, y_test, train_tail, window_setti
     regressor = AdaBoostRegressor(**min_parameters, random_state = 1)
     
     y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, window_setting, offset)
-    regression_plot(y_pred_unscaled, y_unscaled, model_name, offset)
+    regression_plot(y_pred_unscaled, y_unscaled, model_name)
     
     return min_test_mae, min_parameters, model_name
 
@@ -366,20 +339,21 @@ def run_knn(X_train, X_test, y_train, y_test, train_tail, window_setting,offset)
 
     y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, window_setting, offset)
    
-    regression_plot(y_pred_unscaled, y_unscaled, model_name, offset)
+    regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
     return min_test_mae, min_parameters, model_name
 
 
 def main(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--filepath", "-in", type=str, required=True)
+    parser.add_argument("--input_filepath", "-in", type=str, required=True)
+    parser.add_argument("--output_filepath", "-out", type=str, required=True)
     args = parser.parse_args(argv)
 
     rolling_average_num_weeks = 4
     lag_length_num_weeks = 2
 
-    """Configuration/Settings - multiply week counts by 5 (# business days per week) - data is only for weekdays"""
+    """Configure settings - multiply week counts by 5 (# business days per week) - data is only for weekdays"""
     window_setting = 5 * rolling_average_num_weeks # Rolling Average window setting for stationarity_preprocess function
     lag_length = 5 * lag_length_num_weeks # lag length 2 weeks (5 business days)
     
@@ -398,7 +372,7 @@ def main(argv):
             print()
             offset_tag = 0
 
-        df, LME_shifted = preprocess_time_series(args.filepath, window_setting, lag_length, offset_tag)
+        df, LME_shifted = preprocess_time_series(args.input_filepath, window_setting, lag_length, offset_tag)
         X_train, X_test, y_train, y_test = time_series_train_test_split(df, offset_tag)
         train_tail = LME_shifted.loc[y_train.index[-window_setting:]]
         
@@ -420,7 +394,8 @@ def main(argv):
        
         if j==0:
             results = pd.DataFrame({'model_name': model_name_list, 'mae': mae, 'parameters': parameter_setting})
-            results.to_csv('nickel_modeling_results.csv', index = False)
+            results.to_csv(args.output_filepath, index = False)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -1,19 +1,18 @@
 '''
 
-    #### Time Series Modeling/Explorations Portion ####
+    #### Time Series Modeling/Assessment ####
 
-    Below code transforms historic nickel data to be used by various supervised learning regression algorithms to make price
+    Below code transforms historic nickel data and uses it to build various supervised learning regression
+    
+    models to make price forecasts for one-year ahead of time. Predictor variables are created by
+    
+    taking lagged copies of itself and a target variable, y, which represents one year ahead of time,
+    
+    can be built by shifting all other X variables back by one year (261 business days). 
 
-    forecasts for one-year ahead of time. Predictor variables are created by taking lagged copies of itself and a target
 
-    variable, y, which represents one year ahead of time, can be built by shifting all other X variables 
+    To compare with baseline models, models are also fit on data with one day ahead target variables.
 
-    back by one year (261 business days). 
-
-
-    To compare performance with baseline models, the algorithms are also fit on data with one day ahead target variables.
-
-    Predictions can be made for future dates using the final model that is selected.
 
 '''
 
@@ -79,6 +78,7 @@ def reverse_stationarity(series, train_tail, window_setting):
     unscaled.index = series.index
     return unscaled
 
+
 def time_series_train_test_split(df):
 
     X = df[['lag0', 'lag1', 'lag2', 'lag3', 'lag4', 'lag5', 'lag6', 'lag7', 'lag8', 'lag9', 'lag10', 
@@ -123,7 +123,7 @@ def minimum_mae(mae_results, model_name):
     return min_test_mae, min_parameters
 
 
-def fit_predict(model, X_train, X_test, y_train, y_test, train_tail):
+def fit_predict(model, X_train, X_test, y_train, y_test, train_tail, offset):
     '''
     1) Fits model on training data
     2) Makes predictions on test data
@@ -135,8 +135,18 @@ def fit_predict(model, X_train, X_test, y_train, y_test, train_tail):
     y_pred.index = y_test.index
     y_pred_unscaled = reverse_stationarity(y_pred, train_tail, window_setting)
     y_unscaled = reverse_stationarity(y_test, train_tail, window_setting)
+    
+    # For prediction/forecast dates, must shift foreward to one year ahead of time
+    if offset == 1:
+        year=1
+    else:
+        year=0
+    y_pred_unscaled.index = y_pred_unscaled.index + pd.DateOffset(years=year)
+    y_unscaled.index = y_unscaled.index + pd.DateOffset(years=year)
+    
     return y_pred_unscaled, y_unscaled
 
+import matplotlib.dates as mdates
 
 def regression_plot(y_hat, y, model_name):
     #import seaborn as sns
@@ -144,10 +154,19 @@ def regression_plot(y_hat, y, model_name):
     #plt.plot(y)
     
     #sns.set_style("darkgrid")
-
+    locator = mdates.MonthLocator()  # every month
+    # Specify the format - %b gives us Jan, Feb...
+    fmt = mdates.DateFormatter('%b-%y')
     
     plt.plot(y_hat)
     plt.plot(y)
+    
+    X = plt.gca().xaxis
+    X.set_major_locator(locator)
+    # Specify formatter
+    X.set_major_formatter(fmt)
+    plt.xticks( rotation=45 )
+
     plt.legend(['y_hat', 'y'])
     plt.grid(linestyle="dashed")
     plt.title(model_name + ' Regression Prediction Results', fontsize=15)
@@ -155,7 +174,7 @@ def regression_plot(y_hat, y, model_name):
     plt.show()
     
 def preprocess_time_series(window_setting, lag_length):
-    '''Prepares time series data for supervised learning experiments by creating additional lagged columns of the original
+    '''Calls all necessary preprocessing functions -  Prepares time series data for supervised learning experiments by creating additional lagged columns of the original
     column and assigning a target y variable by pushing all predictor X variables back by one year'''
     LME = LME_clean()    
     LME_shifted = LME.shift(-261).dropna()
@@ -175,6 +194,27 @@ def preprocess_time_series(window_setting, lag_length):
     df = df.dropna()
     return df, LME_shifted
 
+def preprocess_time_series_same_day(window_setting, lag_length):
+    '''Same as function above except assigning a target y variable of lag0, or same day, while other 
+    predictor variables are taken from lagged copies of the original lag0'''
+    LME = LME_clean()    
+    LME_shifted = LME
+
+    LME_stationary = stationarity_preprocess(LME, window_setting)
+    df = pd.DataFrame(list(zip(list(LME_stationary.index), list(LME_stationary))), columns = ['ds', 'lag0'])
+    
+    for i in range(1, 11):
+        lag_string = 'lag'+str(i)
+        df[lag_string] = df.lag0.shift(periods=i*lag_length)
+
+    df.index = df['ds']
+    df = df.iloc[:, 1:]
+
+    
+    df['y'] = df['lag0']
+    df = df.dropna()
+    return df, LME_shifted
+
 '''
 The following functions 
 
@@ -185,12 +225,12 @@ The following functions
 '''
 
 
-def run_linear_reg(X_train, X_test, y_train, y_test, train_tail):
+def run_linear_reg(X_train, X_test, y_train, y_test, train_tail, offset):
     '''No parameter tuning for linear reg model'''
 
     # Model Fitting & Predictions
     regressor = LinearRegression()
-    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
     mae = metrics.mean_absolute_error(y_unscaled, y_pred_unscaled)
     model_name = str(regressor).split('(')[0]
     print('Test Linear Regression MAE: ', mae)
@@ -203,7 +243,7 @@ def run_linear_reg(X_train, X_test, y_train, y_test, train_tail):
 
 
 
-def run_polynomial(X_train, X_test, y_train, y_test, train_tail):
+def run_polynomial(X_train, X_test, y_train, y_test, train_tail, offset):
     '''Polynomial regression needs to be fitted manually, since it piggybacks off of linear regression model'''
     
     params1= range(2,5) # Evaluates different degrees of polynomial curve
@@ -247,14 +287,18 @@ def run_polynomial(X_train, X_test, y_train, y_test, train_tail):
     y_poly_pred.index = y_test.index
 
     y_pred_unscaled, y_unscaled = reverse_stationarity(y_poly_pred, train_tail, window_setting), reverse_stationarity(y_test, train_tail, window_setting)
-            
+    
+    # For prediction/forecast dates, must shift foreward to one year ahead of time
+    y_pred_unscaled.index = y_pred_unscaled.index + pd.DateOffset(years=1)
+    y_unscaled.index = y_unscaled.index + pd.DateOffset(years=1)
+    
     regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
     
     return min_test_mae, min_parameters, model_name
 
 
-def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail):
+def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail, offset):
     
     params1= ParameterGrid({'alpha' : [ .00001 ,.0001, .001, .01, .1, 1]
                                 })
@@ -263,7 +307,7 @@ def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail):
     for params in params1:
         # Model Fitting & Predictions
         regressor = linear_model.Lasso(**params, random_state=1)  
-        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
         mae = metrics.mean_absolute_error(y_unscaled, y_pred_unscaled)
         mae_results[str(params)] = mae
 
@@ -273,7 +317,7 @@ def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail):
     min_parameters = ast.literal_eval(min_parameters) # Converts optimal parameters string to dict
     regressor = linear_model.Lasso(**min_parameters, random_state=1)
 
-    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
         
     regression_plot(y_pred_unscaled, y_unscaled, model_name)
 
@@ -281,7 +325,7 @@ def run_lasso_grid(X_train, X_test, y_train, y_test, train_tail):
     return min_test_mae, min_parameters, model_name
 
 
-def run_adaboost_grid(X_train, X_test, y_train, y_test, train_tail):
+def run_adaboost_grid(X_train, X_test, y_train, y_test, train_tail, offset):
     '''Executes parameter tuning using grid search. 
     One final set of parameters is chosen and outputted with resulting MAE'''
     
@@ -293,7 +337,7 @@ def run_adaboost_grid(X_train, X_test, y_train, y_test, train_tail):
     for params in params1:
         # Model Fitting & Predictions
         regressor = AdaBoostRegressor(**params, random_state=1)
-        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
 
         mae = metrics.mean_absolute_error(y_unscaled, y_pred_unscaled)
         mae_results[str(params)] = mae
@@ -304,13 +348,13 @@ def run_adaboost_grid(X_train, X_test, y_train, y_test, train_tail):
     min_parameters = ast.literal_eval(min_parameters) # Converts optimal parameters string to dict
     regressor = AdaBoostRegressor(**min_parameters, random_state=1)
     
-    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
     regression_plot(y_pred_unscaled, y_unscaled, model_name)
     
     return min_test_mae, min_parameters, model_name
 
 
-def run_knn(X_train, X_test, y_train, y_test, train_tail):
+def run_knn(X_train, X_test, y_train, y_test, train_tail, offset):
     
     params1= range(1,67,3) # Evaluates different values of K number of observations in a neighborhood
     
@@ -319,7 +363,7 @@ def run_knn(X_train, X_test, y_train, y_test, train_tail):
     for K in params1:
         # Model Fitting & Predictions
         regressor = neighbors.KNeighborsRegressor(n_neighbors=K)
-        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+        y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
         mae = metrics.mean_absolute_error(y_unscaled, y_pred_unscaled)
         mae_results[str(K)] = mae
 
@@ -329,48 +373,56 @@ def run_knn(X_train, X_test, y_train, y_test, train_tail):
     min_parameters = ast.literal_eval(min_parameters) # Converts optimal parameters string to dict
     regressor = regressor = neighbors.KNeighborsRegressor(n_neighbors=min_parameters)
 
-    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail)
+    y_pred_unscaled, y_unscaled = fit_predict(regressor, X_train, X_test, y_train, y_test, train_tail, offset)
    
     regression_plot(y_pred_unscaled, y_unscaled, model_name)
     return min_test_mae, min_parameters, model_name
+
 
 if __name__ == "__main__":
     window_setting= 5*4 # Rolling Average window setting for stationarity_preprocess function
 
     lag_length = 10 # lag length 2 weeks (5 business days)
-    df, LME_shifted = preprocess_time_series(window_setting, lag_length)
     
-    model_functions = [run_linear_reg,
-             run_polynomial,
-             run_lasso_grid,
-             run_adaboost_grid,
-             run_knn]
+    # Quick comparison of predictions for one year ahead of time predictions versus one day ahead
     
-    # Evaluations for one year ahead of time predictions compared to just one day ahead predictions (no time gap b/w X and y)
-    for j, y_lag_type in enumerate([time_series_train_test_split(df), time_series_train_test_split_no_gap(df)]):
-        
-        X_train, X_test, y_train, y_test = y_lag_type
-        
-        if j == 0:
-            print("One Year Ahead of Time Predictions")
+    for j,pred_type in enumerate(["One Year", "One Day"]):
+
+        if j==0:    
+            print(pred_type + " Ahead of Time Predictions")
             print()
+            df, LME_shifted = preprocess_time_series(window_setting, lag_length)
+            X_train, X_test, y_train, y_test = time_series_train_test_split(df)
             train_tail = LME_shifted.loc[y_train.index[-window_setting:]]
+            offset = 1
 
         else:
             print()
             print('--------------------------------------------------------------------')
             print()
-            print("One Day Ahead Predictions")
+            print(pred_type + " Ahead Predictions")
             print()
-            LME = LME_clean()    
-            train_tail = LME.loc[y_train.index[-window_setting:]]
+            df, LME_shifted = preprocess_time_series_same_day(window_setting, lag_length)
+            X_train, X_test, y_train, y_test = time_series_train_test_split_no_gap(df)
+            #LME = LME_clean()    
+            train_tail = LME_shifted.loc[y_train.index[-window_setting:]]
+            offset = 0
+
 
         mae = []
         parameter_setting = []
         model_name_list = []
+        
+        
+        model_functions = [run_linear_reg,
+                 run_polynomial,
+                 run_lasso_grid,
+                 run_adaboost_grid,
+                 run_knn]
 
-        for i in range(6):
-            min_test_mae, min_parameters, model_name = model_functions[i](X_train, X_test, y_train, y_test, train_tail)
+
+        for i in range(5):
+            min_test_mae, min_parameters, model_name = model_functions[i](X_train, X_test, y_train, y_test, train_tail, offset)
             mae.append(min_test_mae)
             parameter_setting.append(min_parameters)
             model_name_list.append(model_name)
