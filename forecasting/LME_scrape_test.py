@@ -2,8 +2,6 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
-
-
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -12,16 +10,12 @@ import re
 import pandas as pd
 import numpy as np
 from datetime import datetime
-#from datetime import date
-#import datetime
 
 from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 
-from sqlalchemy import create_engine
-from sqlalchemy import(Table, Column, String, Integer, Boolean)
-from sqlalchemy import MetaData, Table
+from sqlalchemy import create_engine, MetaData, Table, Table, Column, String, Integer, Boolean
 
 time_of_search = datetime.now().date()
 
