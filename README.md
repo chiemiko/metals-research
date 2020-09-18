@@ -1,6 +1,6 @@
 # metals-research
 
-### Fall/Winter 2019 
+### Price Forecasting, Fall/Winter 2019 
 #### Goal statement: 
 As the demand for lithium-ion batteries continues to grow, changes to global availability of the raw materials needed to make these batteries will inevitably occur. 
 This project will focus on developing a predictive modeling tool that uses historic London Metals Exchange commodity price data to make forecasts for one and two years ahead of time. 
